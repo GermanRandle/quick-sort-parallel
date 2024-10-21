@@ -7,10 +7,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(libs.guava)
-}
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -18,5 +14,5 @@ java {
 }
 
 application {
-    mainClass = "org.example.AppKt"
+    mainClass = "german.randle.qsort.MainKt"
 }
