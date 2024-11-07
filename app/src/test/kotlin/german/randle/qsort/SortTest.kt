@@ -1,22 +1,26 @@
 package german.randle.qsort
 
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.util.concurrent.Executors
 
 class SortTest {
     @ParameterizedTest
     @MethodSource("testcases")
     fun testSequentialSort(arr: IntArray, expected: IntArray) {
-        quickSortSequential(arr)
+        qSortSequential(arr, 0, arr.size)
         arr shouldBe expected
     }
 
     @ParameterizedTest
     @MethodSource("testcases")
     fun testParallelSort(arr: IntArray, expected: IntArray) {
-        quickSortParallel(arr)
+        val coroutineDispatcher = Executors.newFixedThreadPool(PROCESSES_COUNT).asCoroutineDispatcher()
+        qSortParallel(coroutineDispatcher, arr, 0, arr.size, blockSize = 1)
+        coroutineDispatcher.close()
         arr shouldBe expected
     }
 

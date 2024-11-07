@@ -1,5 +1,7 @@
 package german.randle.qsort
 
+import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.Executors
 import kotlin.system.measureTimeMillis
 
 const val ARRAY_LENGTH = 100_000_000
@@ -12,9 +14,12 @@ fun main() {
         val arr2 = arr1.copyOf()
 
         val (sequentialTime, parallelTime) = measureTimeMillis {
-            quickSortSequential(arr1)
-        } to measureTimeMillis {
-            quickSortParallel(arr2)
+            qSortSequential(arr1, 0, ARRAY_LENGTH)
+        } to run {
+            val coroutineDispatcher = Executors.newFixedThreadPool(PROCESSES_COUNT).asCoroutineDispatcher()
+            measureTimeMillis {
+                qSortParallel(coroutineDispatcher, arr2, 0, ARRAY_LENGTH)
+            }.also { coroutineDispatcher.close() }
         }
 
         if (!arr1.isSorted()) {
