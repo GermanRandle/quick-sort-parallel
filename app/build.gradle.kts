@@ -32,5 +32,5 @@ tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 
-    maxHeapSize = "2g"
+    maxHeapSize = "4g"
 }

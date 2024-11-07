@@ -39,13 +39,13 @@ val arrForSegTree2 = IntArray(ARRAY_SIZE / ((BLOCK_SIZE + 1) / 2) * 4)
 val coroutineDispatcher = Dispatchers.Default.limitedParallelism(PROCESSES_COUNT)
 val scope = CoroutineScope(coroutineDispatcher)
 
-suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int = BLOCK_SIZE) {
+suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
     if (r - l <= blockSize) {
         qSortSequential(arr, l, r)
         return
     }
 
-    // 1. Copy the array for the further new positions assignment
+    // 1. Copy the array for the further positions reassignment
     val chunksAmount = (r - l + blockSize - 1) / blockSize
     val copyJobs = (0..<chunksAmount).map { chunk ->
         scope.launch {
@@ -58,7 +58,7 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int = BLOCK_
     }
 
     // 2. Scan analogue, which is used to determine the new positions
-    var pivot = Random.nextInt(l, r)
+    val pivot = Random.nextInt(l, r)
 
     suspend fun up(nodeId: Int, l: Int, r: Int) {
         if (r - l <= blockSize) {
@@ -126,8 +126,8 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int = BLOCK_
     arr[pivotNewPos] = arr[l + lessThanOrEqualCount - 1]
         .also { arr[l + lessThanOrEqualCount - 1] = arr[pivotNewPos] }
 
-    val leftChild = scope.launch { qSortParallel(arr, l, l + lessThanOrEqualCount - 1) }
-    val rightChild = scope.launch { qSortParallel(arr, l + lessThanOrEqualCount, r) }
+    val leftChild = scope.launch { qSortParallel(arr, l, l + lessThanOrEqualCount - 1, blockSize) }
+    val rightChild = scope.launch { qSortParallel(arr, l + lessThanOrEqualCount, r, blockSize) }
     leftChild.join()
     rightChild.join()
 }
