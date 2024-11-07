@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.system.measureTimeMillis
 
-const val ARRAY_LENGTH = 100_000_000
+const val ARRAY_SIZE = 100_000_000
 const val PROCESSES_COUNT = 4
 const val LAUNCHES_COUNT = 5
 
@@ -13,18 +13,18 @@ const val LAUNCHES_COUNT = 5
 const val BLOCK_SIZE = 1000
 
 // Reserve memory in advance not to spoil the time metrics
-val arrForCopy = IntArray(ARRAY_LENGTH)
-val arrForScan = IntArray(ARRAY_LENGTH)
-val arrForSegTree = IntArray(ARRAY_LENGTH / ((BLOCK_SIZE + 1) / 2) * 4)
+val arrForCopy = IntArray(ARRAY_SIZE)
+val arrForScan = IntArray(ARRAY_SIZE)
+val arrForSegTree = IntArray(ARRAY_SIZE / ((BLOCK_SIZE + 1) / 2) * 4)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun main() {
     val seqToParTimes = List(LAUNCHES_COUNT) {
-        val arr1 = generateRandomArray()
+        val arr1 = generateRandomArray(ARRAY_SIZE)
         val arr2 = arr1.copyOf()
 
         val (sequentialTime, parallelTime) = measureTimeMillis {
-            qSortSequential(arr1, 0, ARRAY_LENGTH)
+            qSortSequential(arr1, 0, ARRAY_SIZE)
         } to run {
             val coroutineDispatcher = Dispatchers.Default.limitedParallelism(PROCESSES_COUNT)
             val scope = CoroutineScope(coroutineDispatcher)
@@ -36,7 +36,7 @@ fun main() {
                     arrForScan,
                     arrForSegTree,
                     0,
-                    ARRAY_LENGTH,
+                    ARRAY_SIZE,
                 )
             }
         }
