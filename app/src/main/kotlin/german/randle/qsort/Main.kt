@@ -12,9 +12,9 @@ fun main() {
         val arr2 = arr1.copyOf()
 
         val (sequentialTime, parallelTime) = measureTimeMillis {
-            quickSortSequential(generateRandomArray())
+            quickSortSequential(arr1)
         } to measureTimeMillis {
-            quickSortParallel(generateRandomArray())
+            quickSortParallel(arr2)
         }
 
         if (!arr1.isSorted()) {
@@ -23,6 +23,11 @@ fun main() {
         if (!arr2.isSorted()) {
             error("PARALLEL SORTING FAILED")
         }
+
+        println("LAUNCH #$it")
+        println("SEQUENTIAL TIME: $sequentialTime ms")
+        println("PARALLEL TIME: $parallelTime ms")
+        println("RATIO: ${sequentialTime / parallelTime}")
 
         sequentialTime to parallelTime
     }
