@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -23,11 +24,9 @@ class SortTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @ParameterizedTest
     @MethodSource("testcases")
-    fun testParallelSort(arr: IntArray) {
+    fun testParallelSort(arr: IntArray) = runBlocking {
         val expected = arr.sorted()
-        val coroutineDispatcher = Dispatchers.Default.limitedParallelism(PROCESSES_COUNT)
-        val scope = CoroutineScope(coroutineDispatcher)
-        qSortParallel(scope, arr, arrForCopy, arrForScan, arrForSegTree, 0, arr.size, blockSize = 1)
+        qSortParallel(arr, 0, arr.size, blockSize = 1)
         arr shouldBe expected
     }
 
