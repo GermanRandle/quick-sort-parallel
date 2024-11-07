@@ -19,9 +19,9 @@ class SortTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @ParameterizedTest
     @MethodSource("testcases")
-    fun testParallelSort(arr: IntArray) = runBlocking {
+    fun testParallelSort(arr: IntArray) {
         val expected = arr.sorted()
-        qSortParallel(arr, 0, arr.size, blockSize = 1)
+        runBlocking { qSortParallel(arr, 0, arr.size, blockSize = 1) }
         arr shouldBe expected
     }
 
@@ -36,7 +36,9 @@ class SortTest {
             Arguments.of(intArrayOf(999, 888, 999, 999, 888, 888)),
             Arguments.of(intArrayOf(90, 50, 20, 70, 80, 10, 60, 30, 40)),
             Arguments.of(generateRandomArray(50)),
-            Arguments.of(generateRandomArray(2000)),
+            Arguments.of(generateRandomArray(777)),
+            Arguments.of(generateRandomArray(2048)),
+            Arguments.of(generateRandomArray(16383)),
         )
     }
 }

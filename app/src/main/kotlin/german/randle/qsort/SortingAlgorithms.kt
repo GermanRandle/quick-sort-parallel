@@ -39,14 +39,10 @@ val arrForSegTree2 = IntArray(ARRAY_SIZE / ((BLOCK_SIZE + 1) / 2) * 4)
 val coroutineDispatcher = Dispatchers.Default.limitedParallelism(PROCESSES_COUNT)
 val scope = CoroutineScope(coroutineDispatcher)
 
-suspend fun qSortParallel(
-    arr: IntArray,
-    l: Int,
-    r: Int,
-    blockSize: Int = BLOCK_SIZE,
-) {
+suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int = BLOCK_SIZE) {
     if (r - l <= blockSize) {
         qSortSequential(arr, l, r)
+        return
     }
 
     // 1. Copy the array for the further new positions assignment
