@@ -3,12 +3,12 @@ package german.randle.qsort
 import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 
-const val ARRAY_SIZE = 100_000_000
-const val PROCESSES_COUNT = 4
+const val ARRAY_SIZE = 100_000_000 // TODO
+const val PROCESSES_COUNT = 10 // TODO
 const val LAUNCHES_COUNT = 5
 
 // If the size of array is less than or equal to this number, then we "switch to sequential mode".
-const val BLOCK_SIZE = 100_000
+const val BLOCK_SIZE = 100_000 // TODO
 
 fun main() = runBlocking {
     val seqToParTimes = List(LAUNCHES_COUNT) {
