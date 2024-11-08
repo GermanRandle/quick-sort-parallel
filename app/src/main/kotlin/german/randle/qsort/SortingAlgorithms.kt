@@ -3,8 +3,8 @@ package german.randle.qsort
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicInteger
 
 fun qSortSequential(arr: IntArray, l: Int, r: Int) {
     if (r - l <= 1) {
@@ -73,7 +73,7 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
         arrForSegTree2[nodeId] = arrForSegTree2[nodeId * 2 + 1] + arrForSegTree2[nodeId * 2 + 2]
     }
 
-    suspend fun down(nodeId: Int, l: Int, r: Int, acc1: Int, acc2: Int) {
+    suspend fun down(nodeId: Int, l: Int, r: Int, acc1: Int, acc2: Int): Int {
         if (r - l <= blockSize) {
             var (localAcc1, localAcc2) = 1 to 1
             (l..<r).forEach {
@@ -83,30 +83,27 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
                     -(acc2 + localAcc2).also { localAcc2++ }
                 }
             }
-            return
+            return localAcc1 - 1
         }
         val m = (l + r) / 2
-        val leftChild = scope.launch { down(nodeId * 2 + 1, l, m, acc1, acc2) }
-        val rightChild = scope.launch { down(nodeId * 2 + 2, m, r, acc1 + arrForSegTree1[nodeId * 2 + 1], acc2 + arrForSegTree2[nodeId * 2 + 1]) }
-        leftChild.join()
-        rightChild.join()
+        val leftChild = scope.async { down(nodeId * 2 + 1, l, m, acc1, acc2) }
+        val rightChild = scope.async { down(nodeId * 2 + 2, m, r, acc1 + arrForSegTree1[nodeId * 2 + 1], acc2 + arrForSegTree2[nodeId * 2 + 1]) }
+        return leftChild.await() + rightChild.await()
     }
 
     scope.launch { up(0, l, r) }.join()
-    scope.launch { down(0, l, r, 0, 0) }.join()
+    val lessThanOrEqualCount = scope.async { down(0, l, r, 0, 0) }.await()
 
     // 3. Assign new positions
     copyJobs.forEach { it.join() }
 
     var pivotNewPos: Int = -1
-    var lessThanOrEqualCount = AtomicInteger(0)
     val assignJobs = (0..<chunksAmount).map { chunk ->
         scope.launch {
             val chunkBegin = l + chunk * blockSize
             val chunkEnd = minOf(r, chunkBegin + blockSize)
             (chunkBegin..<chunkEnd).forEach {
                 val newPos = if (arrForScan[it] > 0) {
-                    lessThanOrEqualCount.incrementAndGet()
                     l + arrForScan[it] - 1
                 } else {
                     r + arrForScan[it]
@@ -120,11 +117,11 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
     }
     assignJobs.forEach { it.join() }
 
-    arr[pivotNewPos] = arr[l + lessThanOrEqualCount.get() - 1]
-        .also { arr[l + lessThanOrEqualCount.get() - 1] = arr[pivotNewPos] }
+    arr[pivotNewPos] = arr[l + lessThanOrEqualCount - 1]
+        .also { arr[l + lessThanOrEqualCount - 1] = arr[pivotNewPos] }
 
-    val leftChild = scope.launch { qSortParallel(arr, l, l + lessThanOrEqualCount.get() - 1, blockSize) }
-    val rightChild = scope.launch { qSortParallel(arr, l + lessThanOrEqualCount.get(), r, blockSize) }
+    val leftChild = scope.launch { qSortParallel(arr, l, l + lessThanOrEqualCount - 1, blockSize) }
+    val rightChild = scope.launch { qSortParallel(arr, l + lessThanOrEqualCount, r, blockSize) }
     leftChild.join()
     rightChild.join()
 }
