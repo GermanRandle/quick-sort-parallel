@@ -55,21 +55,21 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
 
     // 2. Scan analogue, which is used to determine the new positions
     val pivot = random.nextInt(l, r)
-    val arrForSegTree = IntArray((r - l) / ((blockSize + 1) / 2) * 4)
+    val scanTree = IntArray((r - l) / ((blockSize + 1) / 2) * 4)
 
     suspend fun up(nodeId: Int, l: Int, r: Int) {
         if (r - l <= blockSize) {
-            val firstHalfCount = (l..<r).count { arr[it] <= arr[pivot] }
-            arrForSegTree[nodeId] = firstHalfCount
+            scanTree[nodeId] = (l..<r).count { arr[it] <= arr[pivot] }
             return
         }
+
         val m = (l + r) / 2
         val leftChild = scope.launch { up(nodeId * 2 + 1, l, m) }
         val rightChild = scope.launch { up(nodeId * 2 + 2, m, r) }
         leftChild.join()
-        arrForSegTree[nodeId] += arrForSegTree[nodeId * 2 + 1]
+        scanTree[nodeId] += scanTree[nodeId * 2 + 1]
         rightChild.join()
-        arrForSegTree[nodeId] += arrForSegTree[nodeId * 2 + 2]
+        scanTree[nodeId] += scanTree[nodeId * 2 + 2]
     }
 
     suspend fun down(nodeId: Int, l: Int, r: Int, acc1: Int, acc2: Int): Int {
@@ -84,18 +84,18 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
             }
             return localAcc1 - 1
         }
+
         val m = (l + r) / 2
         val leftChild = scope.async { down(nodeId * 2 + 1, l, m, acc1, acc2) }
-        val rightChild = scope.async { down(nodeId * 2 + 2, m, r, acc1 + arrForSegTree[nodeId * 2 + 1], acc2 + m - l - arrForSegTree[nodeId * 2 + 1]) }
+        val rightChild = scope.async { down(nodeId * 2 + 2, m, r, acc1 + scanTree[nodeId * 2 + 1], acc2 + m - l - scanTree[nodeId * 2 + 1]) }
         return leftChild.await() + rightChild.await()
     }
 
     scope.launch { up(0, l, r) }.join()
     val lessThanOrEqualCount = scope.async { down(0, l, r, 0, 0) }.await()
-
-    // 3. Assign new positions
     copyJobs.forEach { it.join() }
 
+    // 3. Assign new positions
     var pivotNewPos: Int = -1
     val assignJobs = (0..<chunksAmount).map { chunk ->
         scope.launch {

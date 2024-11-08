@@ -8,7 +8,7 @@ const val PROCESSES_COUNT = 4
 const val LAUNCHES_COUNT = 5
 
 // If the size of array is less than or equal to this number, then we "switch to sequential mode".
-const val BLOCK_SIZE = 200_000 // TODO
+const val BLOCK_SIZE = 10_000_000
 
 fun main() = runBlocking {
     val seqToParTimes = List(LAUNCHES_COUNT) {

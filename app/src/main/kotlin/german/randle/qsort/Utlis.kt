@@ -2,7 +2,7 @@ package german.randle.qsort
 
 import kotlin.random.Random
 
-val random = Random(17)
+val random = Random(18)
 
 fun generateRandomArray(size: Int): IntArray {
     return IntArray(size) { random.nextInt() }
