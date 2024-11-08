@@ -96,7 +96,7 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
     copyJobs.forEach { it.join() }
 
     // 3. Assign new positions
-    var pivotNewPos: Int = -1
+    var pivotNewPos = -1
     val assignJobs = (0..<chunksAmount).map { chunk ->
         scope.launch {
             val chunkBegin = l + chunk * chunkSize

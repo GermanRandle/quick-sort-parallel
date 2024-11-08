@@ -7,7 +7,10 @@ const val ARRAY_SIZE = 100_000_000
 const val PROCESSES_COUNT = 4
 const val LAUNCHES_COUNT = 5
 
-// If the size of array is less than or equal to this number, then we "switch to sequential mode".
+/**
+ * If the size of array is less than or equal to this number, then we "switch to sequential mode".
+ * Should be set up manually, also it depends on [PROCESSES_COUNT].
+ */
 const val BLOCK_SIZE = 10_000_000
 
 fun main() = runBlocking {
@@ -20,7 +23,7 @@ fun main() = runBlocking {
         val (sequentialTime, parallelTime) = measureTimeMillis {
             qSortSequential(arr1, 0, ARRAY_SIZE)
         }.also { println("SEQUENTIAL TIME: $it ms") } to measureTimeMillis {
-            qSortParallel(arr2, 0, ARRAY_SIZE, blockSize = BLOCK_SIZE)
+            qSortParallel(arr2, 0, ARRAY_SIZE, BLOCK_SIZE)
         }.also { println("PARALLEL TIME: $it ms") }
 
         if (!arr1.isSorted()) {
