@@ -4,14 +4,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 fun qSortSequential(arr: IntArray, l: Int, r: Int) {
     if (r - l <= 1) {
         return
     }
 
-    var pivot = Random.nextInt(l, r)
+    var pivot = random.nextInt(l, r)
     var border = l
 
     for (i in l..<r) {
@@ -32,8 +31,6 @@ fun qSortSequential(arr: IntArray, l: Int, r: Int) {
 // Reserve memory in advance not to spoil the time metrics
 val arrForCopy = IntArray(ARRAY_SIZE)
 val arrForScan = IntArray(ARRAY_SIZE)
-val arrForSegTree1 = IntArray(ARRAY_SIZE / ((BLOCK_SIZE + 1) / 2) * 4)
-val arrForSegTree2 = IntArray(ARRAY_SIZE / ((BLOCK_SIZE + 1) / 2) * 4)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 val coroutineDispatcher = Dispatchers.Default.limitedParallelism(PROCESSES_COUNT)
@@ -51,14 +48,14 @@ suspend fun qSortParallel(arr: IntArray, l: Int, r: Int, blockSize: Int) {
         scope.launch {
             val chunkBegin = l + chunk * blockSize
             val chunkEnd = minOf(r, chunkBegin + blockSize)
-            (chunkBegin..<chunkEnd).forEach {
-                arrForCopy[it] = arr[it]
-            }
+            arr.copyInto(arrForCopy, chunkBegin, chunkBegin, chunkEnd)
         }
     }
 
     // 2. Scan analogue, which is used to determine the new positions
-    val pivot = Random.nextInt(l, r)
+    val pivot = random.nextInt(l, r)
+    val arrForSegTree1 = IntArray((r - l) / ((blockSize + 1) / 2) * 4)
+    val arrForSegTree2 = IntArray((r - l) / ((blockSize + 1) / 2) * 4)
 
     suspend fun up(nodeId: Int, l: Int, r: Int) {
         if (r - l <= blockSize) {

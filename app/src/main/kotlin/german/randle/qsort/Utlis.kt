@@ -2,8 +2,10 @@ package german.randle.qsort
 
 import kotlin.random.Random
 
+val random = Random(17)
+
 fun generateRandomArray(size: Int): IntArray {
-    return IntArray(size) { Random.nextInt() }
+    return IntArray(size) { random.nextInt() }
 }
 
 fun IntArray.isSorted(): Boolean {
